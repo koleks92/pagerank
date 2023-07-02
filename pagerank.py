@@ -57,7 +57,29 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    links = corpus[page]
+    if links:
+        prob_dist_dict = {}
+        # Probability dampin_factor
+        P1 = damping_factor/len(links)
+        for link in links:
+            prob_dist_dict[link] = P1
+        # Probability 1 - damping factor
+        P2 = round((1 - damping_factor) / (len(links) + 1), 3) # Get value from all links + source link
+        for link in links:
+            prob_dist_dict[link] = prob_dist_dict[link] + P2 # Add extra value to all the links
+        # Add source link to the dictionary
+        prob_dist_dict[page] = P2       
+    
+    #If page has no outgoin links
+    else:
+        prob_dist_dict = {}
+        P1 = 1 / len(corpus)
+        for link in corpus:
+            prob_dist_dict[link] = P1
+
+    return prob_dist_dict
+
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,7 +91,31 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    # Empty dictionary
+    page_rank = {}
+    # Initiate each rank
+    for link in corpus:
+        page_rank[link] = 0.0
+
+    # Generate first sample
+    sample = random.choice(list(corpus.keys()))
+    page_rank[sample] += (1 / n) # 1/n is a probability 1/n and n is number of samples 
+
+
+    for i in range(n):
+
+        prob_dist_dict = transition_model(corpus, sample, damping_factor)
+        links = list(prob_dist_dict.keys())
+        probabilities = list(prob_dist_dict.values())
+
+        link = random.choices(links, probabilities)[0]
+        page_rank[link] += (1 / n)
+
+        sample = link
+
+
+    return page_rank
+
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -81,8 +127,12 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    page_rank = {}
 
+    for link in corpus:
+        page_rank[link] = 1 / len(corpus)
+
+    print(page_rank)
 
 if __name__ == "__main__":
     main()
