@@ -103,14 +103,17 @@ def sample_pagerank(corpus, damping_factor, n):
 
 
     for i in range(n):
-
+        # Get transition_model, links and their probabilities
         prob_dist_dict = transition_model(corpus, sample, damping_factor)
         links = list(prob_dist_dict.keys())
         probabilities = list(prob_dist_dict.values())
-
+        # Get random based on links and probabilities
         link = random.choices(links, probabilities)[0]
+
+        # Add page rank
         page_rank[link] += (1 / n)
 
+        # Change sample
         sample = link
 
 
@@ -127,12 +130,46 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
+    # Create empty dictionary
     page_rank = {}
 
+    # Assign each page initial pagerank value
     for link in corpus:
         page_rank[link] = 1 / len(corpus)
 
-    print(page_rank)
+    # Calculate new pagerank values
+
+    converged = False
+
+    while not converged:
+        # Left side of formula
+        left_formula = (1 - damping_factor) / len(corpus)
+        # For each page in page rank
+        for page in page_rank:
+            # Sum of pr(i) / numoflinks
+            page_ranks_i = 0
+            # For each page in corpus
+            for key in corpus:
+                # If page has no links
+                if len(corpus[key]) == 0:
+                    page_ranks_i = page_rank[key] / len(corpus)
+                else:
+                    # For each link in corpus page
+                    for link in corpus[key]:
+                        # If links to page in page_rank, add to page_ranks_i
+                        if link == page:
+                            page_ranks_i += page_rank[key] / len(corpus[key])
+            # Follow formula
+            page_ranks_i *= damping_factor
+            page_ranks_i += left_formula
+            # If converging
+            if round(page_rank[page], 4) == round(page_ranks_i, 4):
+                converged = True
+            else:
+                page_rank[page] = page_ranks_i
+    
+    return page_rank
+           
 
 if __name__ == "__main__":
     main()
